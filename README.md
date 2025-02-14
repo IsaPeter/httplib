@@ -2,7 +2,7 @@
 
 ## Overview
 
-HTTPLib2 is a lightweight Python library for parsing, manipulating, and reconstructing raw HTTP requests and responses. It provides an easy way to analyze and modify HTTP requests for penetration testing, debugging, and automation.
+HTTPLib is a lightweight Python library for parsing, manipulating, and reconstructing raw HTTP requests and responses. It provides an easy way to analyze and modify HTTP requests for penetration testing, debugging, and automation.
 
 ## Features
 
@@ -25,7 +25,7 @@ cd httplib
 Use the library in your Python scripts:
 
 ```python
-from httplib2 import HTTPRequest, HTTPResponse
+from httplib import HTTPRequest, HTTPResponse
 ```
 
 ## Usage
