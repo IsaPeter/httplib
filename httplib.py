@@ -194,6 +194,13 @@ class HTTPRequest:
         cookie_string = '; '.join([f"{k}={v}" for k, v in cookies.items()])
         self.headers['Cookie'] = cookie_string
 
+    # Update a set of cookies
+    def update_cookies(self, cookie_dict):
+        cookies = self.get_cookies()
+        cookies.update(cookie_dict)
+	cookie_string = '; '.join([f"{k}={v}" for k, v in cookies.items()])
+        self.headers['Cookie'] = cookie_string
+
     # Bearer token beállítása
     def set_bearer_token(self, token):
         self.headers['Authorization'] = f'Bearer {token}'
@@ -204,9 +211,30 @@ class HTTPRequest:
         encoded_auth = base64.b64encode(auth_string.encode()).decode()
         self.headers['Authorization'] = f'Basic {encoded_auth}'
 
+    # Set the already encoded version of the authentication string
+    def set_basic_auth_b64(self, encoded_auth):
+        self.headers['Authorization'] = f'Basic {encoded_auth}'
+
     # Tetszőleges header hozzáadása/módosítása
     def set_custom_header(self, key, value):
         self.headers[key] = value
+
+    def update_headers(self, header_dict):
+        self.headers.update(header_dict)
+
+    def clear_cookies(self):
+        if "Cookie" in self.headers:
+            del self.headers["Cookie"]
+    
+    # Set to empty or remove the Authorization header
+    def clear_authorization(self,only_value=False):
+        if only_value:
+            if "Authorization" in self.headers:
+                self.headers["Authorization"] = "" 
+        else:
+            if "Authorization" in self.headers:
+                del self.headers["Authorization"]
+            
 
     def get_request_url(self, default_scheme='http'):
         
@@ -240,6 +268,7 @@ class HTTPResponse:
         status_line = header_lines[0]
         self.http_version, self.status_code, *status_string = status_line.split(' '); self.status_string = ' '.join(status_string)
         
+        self.status_code = int(self.status_code)
 
         for line in header_lines[1:]:
             if ': ' in line:
@@ -298,7 +327,21 @@ class HTTPRequestSender:
 
     def send_request(self, request_obj, timeout=None):
         
-        url = request_obj.get_request_url()
+        # building and overriding url from requesr
+        if self.address:
+            if self.port_number:
+                if self.port_number not in [80,443]:
+                    url = f"{self.protocol}://{self.address}:{str(self.port_number)}/"
+                else:
+                    url = f"{self.protocol}://{self.address}/"
+            else:
+                url = f"{self.protocol}://{self.address}/"
+
+            url = urljoin(url,request_obj.path)
+        else:
+            url = request_obj.get_request_url()
+        
+        
         headers = request_obj.headers
         data = None
 
