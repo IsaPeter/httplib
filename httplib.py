@@ -198,7 +198,7 @@ class HTTPRequest:
     def update_cookies(self, cookie_dict):
         cookies = self.get_cookies()
         cookies.update(cookie_dict)
-	cookie_string = '; '.join([f"{k}={v}" for k, v in cookies.items()])
+        cookie_string = '; '.join([f"{k}={v}" for k, v in cookies.items()])
         self.headers['Cookie'] = cookie_string
 
     # Bearer token beállítása
@@ -323,6 +323,8 @@ class HTTPRequestSender:
         self.address = None # IP or Domain Name
         self.port_number = None # trivial
         self.protocol = "https" # http/https
+        self.allow_redirects = False
+        self.return_raw_response = False
 
 
     def send_request(self, request_obj, timeout=None):
@@ -369,7 +371,8 @@ class HTTPRequestSender:
                     data=data,
                     files=files,
                     timeout=timeout or self.request_timeout,
-                    proxies=self.proxies  # Proxy alkalmazása
+                    proxies=self.proxies,  # Proxy alkalmazása
+                    allow_redirects=self.allow_redirects
                 )
                 return HTTPResponse(response=response)
             else:
@@ -382,7 +385,36 @@ class HTTPRequestSender:
             headers=headers,
             data=data,
             timeout=timeout or self.request_timeout,
-            proxies=self.proxies  # Proxy alkalmazása
+            proxies=self.proxies, 
+            allow_redirects=self.allow_redirects
+        )
+
+        return HTTPResponse(response=response)
+
+
+    def get(self, url, headers=None, timeout=None, proxies=None, allow_redirects=None, return_raw_response=False):
+
+        response = requests.get(
+            url=url,
+            headers=headers,
+            timeout=timeout or self.request_timeout,
+            proxies=proxies or self.proxies,
+            allow_redirects=allow_redirects or self.allow_redirects
+        )
+        if not return_raw_response:
+            return HTTPResponse(response=response)
+        else:
+            return response
+
+
+    def query_url(self, url, method="GET", headers=None, timeout=None, proxies=None, allow_redirects=None):
+        response = requests.request(
+            method=method.upper(),
+            url=url,
+            headers=headers,
+            timeout=timeout or self.request_timeout,
+            proxies=proxies or self.proxies,
+            allow_redirects=allow_redirects or self.allow_redirects
         )
 
         return HTTPResponse(response=response)
